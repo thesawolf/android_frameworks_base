@@ -18,6 +18,10 @@ LOCAL_C_INCLUDES := \
         $(TOP)/frameworks/base/media/libstagefright/httplive            \
         $(TOP)/frameworks/base/media/libstagefright/rtsp                \
 
+ifeq ($(TARGET_BOARD_PLATFORM),sun4i)
+	LOCAL_CFLAGS += -DALLWINNER_HARDWARE
+endif
+
 LOCAL_MODULE:= libstagefright_nuplayer
 
 LOCAL_MODULE_TAGS := eng

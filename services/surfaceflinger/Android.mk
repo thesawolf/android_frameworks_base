@@ -11,9 +11,9 @@ LOCAL_SRC_FILES:= \
     LayerDim.cpp 							\
     LayerScreenshot.cpp						\
     DdmConnection.cpp						\
-    DisplayHardware/DisplayHardware.cpp 	\
-    DisplayHardware/DisplayHardwareBase.cpp \
-    DisplayHardware/HWComposer.cpp 			\
+    DisplayHardware/DisplayHardware.cpp 			\
+    DisplayHardware/DisplayHardwareBase.cpp 			\
+    DisplayHardware/HWComposer.cpp 				\
     GLExtensions.cpp 						\
     MessageQueue.cpp 						\
     SurfaceFlinger.cpp 						\
@@ -32,6 +32,9 @@ endif
 ifeq ($(TARGET_BOARD_PLATFORM), s5pc110)
 	LOCAL_CFLAGS += -DHAS_CONTEXT_PRIORITY -DNEVER_DEFAULT_TO_ASYNC_MODE -DSURFACEFLINGER_FORCE_SCREEN_RELEASE
 	LOCAL_CFLAGS += -DREFRESH_RATE=56
+endif
+ifeq ($(TARGET_BOARD_PLATFORM),sun4i)
+	LOCAL_CFLAGS += -DALLWINNER_HARDWARE
 endif
 
 LOCAL_SHARED_LIBRARIES := \

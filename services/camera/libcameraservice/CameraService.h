@@ -216,6 +216,13 @@ private:
     };
 
     camera_module_t *mModule;
+
+#ifdef ALLWINNER_HARDWARE
+	static	int             mOverlayScreen;
+
+public:
+	int                     setCameraScreen(int screen);
+#endif
 };
 
 } // namespace android

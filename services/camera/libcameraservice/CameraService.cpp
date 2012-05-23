@@ -89,6 +89,11 @@ static void htcCameraSwitch(int cameraId)
 // should be ok for now.
 static CameraService *gCameraService;
 
+#ifdef ALLWINNER_HARDWARE
+// define and initialize static class member
+int CameraService::mOverlayScreen = MASTER_SCREEN;
+#endif
+
 CameraService::CameraService()
 :mSoundRef(0), mModule(0)
 {
@@ -116,6 +121,19 @@ void CameraService::onFirstRef()
             setCameraFree(i);
         }
     }
+
+#ifdef ALLWINNER_HARDWARE
+    char prop_value[PROPERTY_VALUE_MAX];
+    if (property_get(PROP_CAMERA_KEY, prop_value, PROP_SCREEN_DEFAULT_VALUE) > 0)
+    {
+        LOGV("camera prop_value = %s", prop_value);
+        String8 value_screen( prop_value );
+        if(value_screen == PROP_MASTER_SCREEN)
+            mOverlayScreen = MASTER_SCREEN;
+        else
+            mOverlayScreen = SLAVE_SCREEN;
+    }
+#endif
 }
 
 CameraService::~CameraService() {
@@ -127,6 +145,35 @@ CameraService::~CameraService() {
 
     gCameraService = NULL;
 }
+
+#ifdef ALLWINNER_HARDWARE
+// add to switch camera overlay surface
+int CameraService::setCameraScreen(int32_t screen)
+{
+    LOGD("CameraService::setCameraScreen: %d", screen);
+    sp<Client> client;
+
+    mOverlayScreen = screen;
+
+    if(mOverlayScreen == MASTER_SCREEN)
+        property_set(PROP_CAMERA_KEY, PROP_MASTER_SCREEN);
+    else
+        property_set(PROP_CAMERA_KEY, PROP_SLAVE_SCREEN);
+
+    for(int i = 0; i < MAX_CAMERAS; i++)
+    {
+        if(mClient[i] != 0)
+        {
+            client = mClient[i].promote();
+            if (client != 0)
+            {
+                client->sendCommand(CAMERA_CMD_SET_SCREEN_ID, screen, 0);
+            }
+	}
+    }
+    return OK;
+}
+#endif
 
 int32_t CameraService::getNumberOfCameras() {
     return mNumberOfCameras;
@@ -489,10 +536,19 @@ status_t CameraService::Client::connect(const sp<ICameraClient>& client) {
 static void disconnectWindow(const sp<ANativeWindow>& window) {
     if (window != 0) {
         status_t result = native_window_api_disconnect(window.get(),
+#ifdef ALLWINNER_HARDWARE
+                NATIVE_WINDOW_API_CAMERA_HW);
+#else
                 NATIVE_WINDOW_API_CAMERA);
+#endif
         if (result != NO_ERROR) {
+#ifdef ALLWINNER_HARDWARE
+            LOGW("native_window_api_disconnect failed: %s (%d), api: %d", strerror(-result),
+                    result, NATIVE_WINDOW_API_CAMERA_HW);
+#else
             LOGW("native_window_api_disconnect failed: %s (%d)", strerror(-result),
                     result);
+#endif
         }
     }
 }
@@ -556,13 +612,26 @@ status_t CameraService::Client::setPreviewWindow(const sp<IBinder>& binder,
     }
 
     if (window != 0) {
+#ifdef ALLWINNER_HARDWARE
+        result = native_window_api_connect(window.get(), NATIVE_WINDOW_API_CAMERA_HW);
+#else
         result = native_window_api_connect(window.get(), NATIVE_WINDOW_API_CAMERA);
+#endif
         if (result != NO_ERROR) {
+#ifdef ALLWINNER_HARDWARE
+            LOGE("native_window_api_connect failed: %s (%d), api: %d", strerror(-result),
+                    result, NATIVE_WINDOW_API_CAMERA_HW);
+#else
             LOGE("native_window_api_connect failed: %s (%d)", strerror(-result),
                     result);
+#endif
             return result;
         }
     }
+
+#ifdef ALLWINNER_HARDWARE
+    mHardware->sendCommand(CAMERA_CMD_SET_SCREEN_ID, mOverlayScreen, 0);
+#endif
 
     // If preview has been already started, register preview buffers now.
     if (mHardware->previewEnabled()) {
@@ -887,6 +956,14 @@ status_t CameraService::Client::sendCommand(int32_t cmd, int32_t arg1, int32_t a
     LOG1("sendCommand (pid %d)", getCallingPid());
     int orientation;
     Mutex::Autolock lock(mLock);
+
+#ifdef ALLWINNER_HARDWARE
+    if (cmd == CAMERA_CMD_SET_SCREEN_ID)
+    {
+        return mHardware->sendCommand(cmd, arg1, arg2);
+    }
+#endif
+
     status_t result = checkPidAndHardware();
     if (result != NO_ERROR) return result;
 
@@ -952,6 +1029,7 @@ void CameraService::Client::disableMsgType(int32_t msgType) {
 #define CHECK_MESSAGE_INTERVAL 10 // 10ms
 bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     int sleepCount = 0;
+#ifndef ALLWINNER_HARDWARE
     while (mMsgEnabled & msgType) {
         if (mLock.tryLock() == NO_ERROR) {
             if (sleepCount > 0) {
@@ -967,6 +1045,9 @@ bool CameraService::Client::lockIfMessageWanted(int32_t msgType) {
     }
     LOGW("lockIfMessageWanted(%d): dropped unwanted message", msgType);
     return false;
+#else
+    return true;
+#endif
 }
 
 // ----------------------------------------------------------------------------

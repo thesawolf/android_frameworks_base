@@ -65,6 +65,19 @@ public:
         remote()->transact(BnCameraService::CONNECT, data, &reply);
         return interface_cast<ICamera>(reply.readStrongBinder());
     }
+
+#ifdef ALLWINNER_HARDWARE
+    // add to set overlay screen
+    virtual int setCameraScreen(int screen)
+    {
+        Parcel data, reply;
+        data.writeInterfaceToken(ICameraService::getInterfaceDescriptor());
+        data.writeInt32(screen);
+        remote()->transact(BnCameraService::SET_CAMERA_SCREEN, data, &reply);
+        return reply.readInt32();
+    }
+#endif
+
 };
 
 IMPLEMENT_META_INTERFACE(CameraService, "android.hardware.ICameraService");
@@ -97,6 +110,16 @@ status_t BnCameraService::onTransact(
             reply->writeStrongBinder(camera->asBinder());
             return NO_ERROR;
         } break;
+#ifdef ALLWINNER_HARDWARE
+        // add to set overlay screen
+        case SET_CAMERA_SCREEN: {
+            LOGV("SET_CAMERA_SCREEN");
+            CHECK_INTERFACE(ICameraService, data, reply);
+            int screen = data.readInt32();
+            reply->writeInt32(setCameraScreen(screen));
+            return NO_ERROR;
+        } break;
+#endif
         default:
             return BBinder::onTransact(code, data, reply, flags);
     }
