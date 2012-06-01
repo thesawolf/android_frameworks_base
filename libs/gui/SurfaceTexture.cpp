@@ -1292,11 +1292,7 @@ int SurfaceTexture::setParameter(uint32_t cmd,uint32_t value)
         mPixelFormat = layer_info->format;
     }
 
-    if(IsHardwareRenderSupport()) {
-        return 100;
-    } else {
-        return 0;
-    }
+    return 0;
 }
 
 uint32_t SurfaceTexture::getParameter(uint32_t cmd)
