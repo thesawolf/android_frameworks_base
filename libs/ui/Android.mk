@@ -43,8 +43,6 @@ include $(CLEAR_VARS)
 LOCAL_SRC_FILES:= \
 	$(commonSources) \
 	EGLUtils.cpp \
-	DisplayDispatcher.cpp \
-	DisplaySemaphore.cpp \
 	FramebufferNativeWindow.cpp \
 	GraphicBuffer.cpp \
 	GraphicBufferAllocator.cpp \
@@ -69,6 +67,13 @@ LOCAL_C_INCLUDES := \
     external/skia/include/core
 
 LOCAL_MODULE:= libui
+
+ifeq ($(TARGET_BOARD_PLATFORM),sun4i)
+    LOCAL_CFLAGS += -DALLWINNER_HARDWARE
+    LOCAL_SRC_FILES += DisplayDispatcher.cpp \
+        DisplaySemaphore.cpp
+endif
+
 
 include $(BUILD_SHARED_LIBRARY)
 

@@ -24,7 +24,9 @@
 #include <utils/misc.h>
 #include <utils/Log.h>
 #include <hardware/hardware.h>
+#ifdef ALLWINNER_HARDWARE
 #include <hardware/display.h>
+#endif
 #include <surfaceflinger/SurfaceComposerClient.h>
 #include <ui/DisplayDispatcher.h>
 #include <stdio.h>
@@ -80,12 +82,15 @@ namespace android
             int     mDisplayFormat0;
             int     mDisplayFormat1;
         private:
+#ifdef ALLWINNER_HARDWARE
             hw_module_t*         disp_module;
             display_device_t*    disp_device;
+#endif
     };
 
     NativeDisplayManager::NativeDisplayManager()
     {
+        #ifdef ALLWINNER_HARDWARE
         int                 err;
 
         err = hw_get_module(DISPLAY_HARDWARE_MODULE_ID, (hw_module_t const**)&disp_module);
@@ -96,16 +101,19 @@ namespace android
                 LOGE("Open Display Device Failed!\n");
             }
         }
+        #endif
     }
 
     NativeDisplayManager::~NativeDisplayManager()
     {
+        #ifdef ALLWINNER_HARDWARE
         int                 err;
 
         if(disp_device)
         {
             display_close(disp_device);
         }
+        #endif
     }
 
     int NativeDisplayManager::changeDisplayMode(int displayno, int value0,int value1)
@@ -119,6 +127,7 @@ namespace android
 
     int NativeDisplayManager::setDisplayParameter(int displayno, int value0,int value1)
     {
+        #ifdef ALLWINNER_HARDWARE
         if(displayno == 0)
         {
             if(value0 == DISPLAY_DEVICE_LCD)
@@ -171,7 +180,6 @@ namespace android
                 mDisplayPixelFormat1 = value1;
             }
         }
-        #ifdef ALLWINNER_HARDWARE
         return SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_SETDISPPARA,displayno,value0,value1);
         #else
         return 0;
@@ -189,6 +197,7 @@ namespace android
 
     int NativeDisplayManager::openDisplay(int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         if(displayno == 0)
         {
             mDisplayOpen0 = true;
@@ -198,7 +207,6 @@ namespace android
             mDisplayOpen1 = true;
         }
 
-        #ifdef ALLWINNER_HARDWARE
         return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_OPENDISP,displayno,0,0);
         #else
         return 0;
@@ -207,6 +215,7 @@ namespace android
 
     int NativeDisplayManager::closeDisplay(int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         if(displayno == 0)
         {
             mDisplayOpen0 = false;
@@ -216,7 +225,6 @@ namespace android
             mDisplayOpen1 = false;
         }
 
-        #ifdef ALLWINNER_HARDWARE
         return  SurfaceComposerClient::setDisplayProp(DISPLAY_CMD_CLOSEDISP,displayno,0,0);
         #else
         return 0;
@@ -225,20 +233,24 @@ namespace android
 
     int NativeDisplayManager::getHdmiStatus(void)
     {
+        #ifdef ALLWINNER_HARDWARE
         if(disp_device)
         {
             return  disp_device->gethdmistatus(disp_device);
         }
+        #endif
 
         return  -1;
     }
 
     int NativeDisplayManager::getTvDacStatus(void)
     {
+        #ifdef ALLWINNER_HARDWARE
         if(disp_device)
         {
             return  disp_device->gettvdacstatus(disp_device);
         }
+        #endif
 
         return  -1;
     }
@@ -601,6 +613,7 @@ namespace android
 
     static jint getMaxWidthDisplay_native(JNIEnv *env, jobject clazz)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -613,10 +626,14 @@ namespace android
         //LOGE("getDisplayMaster_native.");
 
         return  (jint)gNativeDisplayManager->getMaxWidthDisplay();
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputType_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -629,10 +646,14 @@ namespace android
         //LOGE("getDisplayOutputType_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_TYPE);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputFormat_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -645,10 +666,14 @@ namespace android
         //LOGE("getDisplayOutputFormat_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_FORMAT);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputWidth_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -661,10 +686,14 @@ namespace android
         //LOGE("getDisplayOutputWidth_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_WIDTH);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputHeight_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -677,10 +706,14 @@ namespace android
         //LOGE("getDisplayOutputHeight_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_HEIGHT);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputPixelFormat_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -693,10 +726,14 @@ namespace android
         //LOGE("getDisplayOutputPixelFormat_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_PIXELFORMAT);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputOpen_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -709,10 +746,14 @@ namespace android
         //LOGE("getDisplayOutputOpen_native.");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_ISOPEN);
+        #else
+        return -1;
+        #endif
     }
 
     static jint getDisplayOutputHotPlug_native(JNIEnv *env, jobject clazz,int displayno)
     {
+        #ifdef ALLWINNER_HARDWARE
         int   ret;
 
         //LOGE("Native Display manager already initialized.");
@@ -725,6 +766,9 @@ namespace android
         //LOGE("getDisplayOutputHotPlug_native!\n");
 
         return  (jint)gNativeDisplayManager->getDisplayParameter(displayno,DISPLAY_OUTPUT_HOTPLUG);
+        #else
+        return -1;
+        #endif
     }
 
 static JNINativeMethod method_table[] = {

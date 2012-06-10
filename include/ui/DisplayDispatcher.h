@@ -28,7 +28,9 @@
 #include <utils/Looper.h>
 #include <utils/BitSet.h>
 #include <ui/DisplaySemaphore.h>
+#ifdef ALLWINNER_HARDWARE
 #include <hardware/display.h>
+#endif
 #include <hardware/hardware.h>
 #include <stddef.h>
 #include <unistd.h>
@@ -50,30 +52,39 @@
 #define   DISPLAY_CMD_GETDISPLAYMODE    11
 #define   DISPLAY_CMD_GETDISPCOUNT      12
 #define   DISPLAY_CMD_SETDISPMODE       13
+
+#ifndef ALLWINNER_HARDWARE
+/* Dummy struct so we don't have to ifdef
+ * even more stuff
+ */
+typedef struct display_device_t {
+    void *dummy;
+} display_device_t;
+#endif
+
 namespace android
 {
-    /* 同显时的帧管理线程 */
     class DisplayDispatcherThread : public Thread
     {
         public:
-            explicit DisplayDispatcherThread(display_device_t*    mDevice);
+            explicit DisplayDispatcherThread(display_device_t* mDevice);
             ~DisplayDispatcherThread();
-            void                setSrcBuf(int srcfb_id,int srcfb_offset);
+            void                setSrcBuf(int srcfb_id, int srcfb_offset);
             void                signalEvent();
             void                waitForEvent();
-            void                 resetEvent();
+            void                resetEvent();
 
         private:
             sp<DisplaySemaphore>    mSemaphore;
             int                 mSrcfbid;
             int                 mSrcfboffset;
-            int                 mCurfb;             /*定义同显时需要显示副屏需要显示的fb no*/
-            int                 mFbOffset;          /*定义当前在副屏上显示的fb中的buffer id*/
-            int                 mFrameidx[DISPLAYDISPATCH_MAXBUFNO];  /*每个buffer管理的帧号*/
+            int                 mCurfb;
+            int                 mFbOffset;
+            int                 mFrameidx[DISPLAYDISPATCH_MAXBUFNO];
             void                enqueuebuf(int frameidx);
             virtual bool        threadLoop();
-            void                 LooperOnce();
-            display_device_t*    mDispDevice;
+            void                LooperOnce();
+            display_device_t*   mDispDevice;
     };
 
     class DisplayDispatcher:public virtual RefBase
@@ -86,10 +97,10 @@ namespace android
             int     getDispProp(int cmd,int param0,int param1);
             void    startSwapBuffer();
         private:
-            int      changeDisplayMode(int displayno, int value0,int value1);
-            int      setDisplayParameter(int displayno, int value0,int value1);
-            int      setDisplayMode(int mode);
-            int        openDisplay(int displayno);
+            int     changeDisplayMode(int displayno, int value0,int value1);
+            int     setDisplayParameter(int displayno, int value0,int value1);
+            int     setDisplayMode(int mode);
+            int     openDisplay(int displayno);
             int     closeDisplay(int displayno);
             int     getHdmiStatus(void);
             int     getTvDacStatus(void);
@@ -98,11 +109,11 @@ namespace android
             int     getMasterDisplay();
             int     getDisplayMode();
             int     getDisplayCount();
-            int        getMaxWidthDisplay();
+            int     getMaxWidthDisplay();
             int     getMaxHdmiMode();
 
-            bool     mDisplayOpen0;
-            bool     mDisplayOpen1;
+            bool    mDisplayOpen0;
+            bool    mDisplayOpen1;
             int     mDisplayMaster;
             int     mDisplayMode;
             int     mDisplayPixelFormat0;
@@ -111,8 +122,8 @@ namespace android
             int     mDisplayType1;
             int     mDisplayFormat0;
             int     mDisplayFormat1;
-            sp<DisplayDispatcherThread>   mThread;
-            display_device_t*    mDevice;
+            sp<DisplayDispatcherThread> mThread;
+            display_device_t*           mDevice;
 
     };
 
