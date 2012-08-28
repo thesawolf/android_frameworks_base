@@ -60,7 +60,7 @@ public class PhoneStatusBarPolicy {
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
 
-    private static final int AM_PM_STYLE = AM_PM_STYLE_GONE;
+    private static final int AM_PM_STYLE = AM_PM_STYLE_SMALL;
 
     private static final int INET_CONDITION_THRESHOLD = 50;
 

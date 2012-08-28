@@ -59,7 +59,7 @@ public class HoloClock extends FrameLayout {
     private static final int AM_PM_STYLE_SMALL   = 1;
     private static final int AM_PM_STYLE_GONE    = 2;
 
-    private static int AM_PM_STYLE = AM_PM_STYLE_GONE;
+    private static int AM_PM_STYLE = AM_PM_STYLE_SMALL;
 
     private static final String FONT_DIR = "/system/fonts/";
     private static final String CLOCK_FONT = FONT_DIR + "AndroidClock_Solid.ttf";
