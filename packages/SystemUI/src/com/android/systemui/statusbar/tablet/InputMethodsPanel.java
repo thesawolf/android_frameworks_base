@@ -76,7 +76,8 @@ public class InputMethodsPanel extends LinearLayout implements StatusBarPanel,
     private InputMethodButton mInputMethodSwitchButton;
     private LinearLayout mInputMethodMenuList;
     private boolean mHardKeyboardAvailable;
-    private boolean mHardKeyboardEnabled;
+    // private boolean mHardKeyboardEnabled; SAW
+    private boolean mHardKeyboardEnabled = false;
     private OnHardKeyboardEnabledChangeListener mHardKeyboardEnabledChangeListener;
     private LinearLayout mHardKeyboardSection;
     private Switch mHardKeyboardSwitch;
